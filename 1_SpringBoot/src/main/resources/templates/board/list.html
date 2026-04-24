@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<style>td:hover{cursor: pointer;}</style>
+</head>
+<body>
+	<!-- common/navbar.html 삽입 -->
+	<div th:replace="~{views/common/navbar.html}"></div>
+	
+	<div class="container py-4">
+		<div class="bd-example-snippet bd-code-snippet">
+			<div class="p-5 mb-4 bg-light rounded-3">
+				<div class="container-fluid py-5">
+					<h1 class="display-5 fw-bold">General Board</h1>
+				</div>
+			</div>
+			<div class="bd-example">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th width="80px">글 번호</th>
+							<th>글 제목</th>
+							<th width="130px">작성자</th>
+							<th width="130px">작성일자</th>
+							<th width="80px">조회수</th>
+	          			</tr>
+	          		</thead>
+	         		<tbody> 
+	          			<tr th:each="b:${list}">
+	            			<td>[[${b.boardId}]]</td>
+	            			<td th:text="${b.boardTitle}"></td>
+	            			<td>[[${b.nickName}]]</td>
+	            			<td th:text="${b.createDate}"></td>
+	            			<td>[[${b.boardCount}]]</td>
+	          			</tr>
+	          			
+	          		</tbody>
+	        	</table>
+	       	</div>
+		</div>
+        <nav aria-label="Standard pagination example" style="float: right;">
+        	<ul class="pagination">
+	            <li class="page-item">
+	            	<a class="page-link" th:href="@{${loc}(page=${pi.currentPage - 1})}" aria-label="Previous">
+	            		<span aria-hidden="true">&laquo;</span>
+	              	</a>
+	            </li>
+	            <li class="page-item" th:each="p: ${#numbers.sequence(pi.startPage, pi.endPage)}">
+	            	<a class="page-link" th:href="@{${loc}(page=${p})}" th:text="${p}"></a>
+	            </li>
+	            <li class="page-item">
+	            	<a class="page-link" th:href="@{${loc}(page=${pi.currentPage + 1})}" aria-label="Next">
+	            		<span aria-hidden="true">&raquo;</span>
+	            	</a>
+	            </li>
+	    	</ul>
+        </nav>
+		
+		
+       	<button th:if="${session.loginUser}"class="btn btn-outline-success" type="button" onclick="location.href='/board/write'">WRITE BOARD</button>
+       	
+	</div>
+	<script th:inline="javascript">
+		window.onload=()=>{
+			const tbody = document.querySelector('tbody');
+			const tds = tbody.querySelectorAll('td'); //tds안에는 td의 배열
+			for(const td of tds){
+				td.addEventListener('click',(e)=>{
+					const trTds =  e.target.parentElement.querySelectorAll('td');
+					const boardId = trTds[0].innerText;
+					location.href='/board/' + boardId + '/' + /*[[${pi.currentPage}]]*/1;
+				});
+			}
+		}
+	</script>
+</body>
+</html>

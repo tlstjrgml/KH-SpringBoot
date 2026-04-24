@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<style>td:hover{cursor: pointer;}</style>
+</head>
+<body>
+	<!-- common/navbar.html 삽입 -->
+	<div th:replace="common/navbar.html"></div>
+	
+	<div class="container py-4">
+		<div class="bd-example-snippet bd-code-snippet">
+			<div class="p-5 mb-4 bg-light rounded-3">
+				<div class="container-fluid py-5">
+					<h1 class="display-5 fw-bold">General Board</h1>
+				</div>
+			</div>
+			<div class="bd-example">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th width="80px">글 번호</th>
+							<th>글 제목</th>
+							<th width="130px">작성자</th>
+							<th width="130px">작성일자</th>
+							<th width="80px">조회수</th>
+	          			</tr>
+	          		</thead>
+	         		<tbody> 
+	          			<tr>
+	            			<td>Default</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	          			</tr>
+	          			<tr>
+	            			<td>Default</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	          			</tr>
+	          			<tr>
+	            			<td>Default</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	          			</tr>
+	          			<tr>
+	            			<td>Default</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	          			</tr>
+	          			<tr>
+	            			<td>Default</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	          			</tr>
+	          			<tr>
+	            			<td>Default</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	          			</tr>
+	          			<tr>
+	            			<td>Default</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	            			<td>Cell</td>
+	          			</tr>
+	          		</tbody>
+	        	</table>
+	       	</div>
+		</div>
+        <nav aria-label="Standard pagination example" style="float: right;">
+        	<ul class="pagination">
+	            <li class="page-item">
+	            	<a class="page-link" href="#" aria-label="Previous">
+	            		<span aria-hidden="true">&laquo;</span>
+	              	</a>
+	            </li>
+	            <li class="page-item"><a class="page-link" href="#">1</a></li>
+	            <li class="page-item"><a class="page-link" href="#">2</a></li>
+	            <li class="page-item"><a class="page-link" href="#">3</a></li>
+	            <li class="page-item">
+	            	<a class="page-link" href="#" aria-label="Next">
+	            		<span aria-hidden="true">&raquo;</span>
+	            	</a>
+	            </li>
+	    	</ul>
+        </nav>
+		<!-- 로그인 했을 때만 버튼 보이게 -->		
+       	<button class="btn btn-outline-success" type="button" onclick="location.href='/board/write'">WRITE BOARD</button>
+	</div>
+</body>
+</html>
