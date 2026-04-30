@@ -1,5 +1,6 @@
 package kh.springboot.member.model.controller;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
@@ -230,4 +232,35 @@ public class MemberController {
 			throw new MemberException("회원탈퇴를 실패했습니다");
 		}
 	}
+	
+//	@GetMapping("checkId")
+//	public void checkId(@RequestParam("id")String id, PrintWriter out) {
+//		int count = mService.checkId(id);
+//		out.print(count);
+//	}
+//	
+//	@GetMapping("checkNickName")
+//	@ResponseBody
+//	public String checkNickName(@RequestParam("nickName")String nickName) {
+//		//int count = mService.checkNickName(nickName);
+//		//out.print(count);
+//		//out.print(mService.checkNickName(nickName));
+//		int count = mService.checkNickName(nickName);
+//		return count == 0 ? "usable" : "unusable";
+//		
+//	}
+	
+	@GetMapping("checkValue")
+	@ResponseBody
+	public int checkValue(@RequestParam("column")String col, @RequestParam("value") String val) {
+		HashMap<String, String> map = new HashMap<String, String>();
+		map.put("col", col);
+		map.put("val", val);
+		int count = mService.checkValue(map);
+		return count;
+	}
+	
+	
+	
+	
 }

@@ -5,6 +5,7 @@
 <title>Insert title here</title>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 </head>
 <body class="bg-light">
 	<div class="container">
@@ -49,12 +50,13 @@
 							<div class="input-group">
 								<input type="text" class="form-control" id="emailId" name="emailId">
 								<span class="input-group-text">@</span>
-								<select name="emailDomain" style="width: 280px;">
+								<select name="emailDomain" style="width: 200px;">
 									<option>naver.com</option>
 									<option>gmail.com</option>
 									<option>nate.com</option>
 									<option>hanmail.net</option>
 								</select>
+								<button type="button" class="btn btn-outline-success" id="sendEmail">인증번호</button>
 							</div>
 						</div>
 						
@@ -89,5 +91,45 @@
 
 		<footer class="my-5 pt-5 text-muted text-center text-small"></footer>
 	</div>
+	
+	<script>
+		window.onload=()=>{
+
+			document.getElementById('id').addEventListener('change',(e)=>{
+				checkValue(e.target);
+			});
+			
+			
+
+			document.getElementById('nickName').addEventListener('change',function(){
+				checkValue(this);
+			});
+		}		
+			
+			const checkValue = obj =>{
+				//console.log(obj);
+				const resultLabel = obj.nextElementSibling;
+				//console.log(resultLabel);
+				if(obj.value.trim() == ''){
+					resultLabel.style.color="black";
+					resultLabel.innerText = "Please Check Your " + (obj.id == 'id' ? "ID." : "NickName.");
+				}else{
+					$.ajax({
+						url:'/member/checkValue',
+						data: {column:obj.id, value:obj.value.trim()},
+						success: data =>{
+							if(data==0){
+								resultLabel.innerText = 'You can use this ' + obj.id + '.';
+								resultLabel.style.color = 'green';
+							}else{
+								resultLabel.innerText = "You can't use this " + obj.id + '.';
+								resultLabel.style.color = 'red';
+							}
+						},
+						error: data => console.log(data)
+					})
+				}
+			}
+	</script>
 </body>
 </html>

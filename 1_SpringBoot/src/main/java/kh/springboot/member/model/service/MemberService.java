@@ -43,6 +43,21 @@ public class MemberService {
 		return mapper.deleteMember(id);
 	}
 
+	public int checkValue(HashMap<String, String> map) {
+		// TODO Auto-generated method stub
+		return mapper.checkValue(map);
+	}
+
+//	public int checkId(String id) {
+//		// TODO Auto-generated method stub
+//		return mapper.checkId(id);
+//	}
+//
+//	public int checkNickName(String nickName) {
+//		// TODO Auto-generated method stub
+//		return mapper.checkNickName(nickName);
+//	}
+
 
 
 

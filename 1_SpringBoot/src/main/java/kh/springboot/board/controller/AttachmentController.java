@@ -176,12 +176,26 @@ public class AttachmentController {
 		if(b != null) {
 			model.addAttribute("b",b).addAttribute("page", page).addAttribute("list", list);
 			return "views/attm/detail";
-		}else {
+		}else { 	
 			throw new BoardException("첨부파일 게시글 상세보기를 실패했습니다");
 		}
 	}
 		
-		
+//	//삭제
+//	@PostMapping("delete")
+//	public String deleteBoard(@RequestParam("boardId")int bId) {
+//		
+//		int result1 = bService.deleteBoard(bId);
+//		int result2 = bService.statusNAttm(bId);
+//		if(result1>0 && result2 < 0) { 
+//			return "redirect://attm/list";
+//		}else {
+//			throw new BoardException("삭제를 실패했습니다");
+//		}
+//		
+//	}
+	
+	
 		
 }
 

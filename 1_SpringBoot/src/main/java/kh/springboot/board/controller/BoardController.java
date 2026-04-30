@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,7 @@ import kh.springboot.board.model.exception.BoardException;
 import kh.springboot.board.model.service.BoardService;
 import kh.springboot.board.model.vo.Board;
 import kh.springboot.board.model.vo.PageInfo;
+import kh.springboot.board.model.vo.Reply;
 import kh.springboot.member.model.vo.Member;
 import lombok.RequiredArgsConstructor;
 import templates.views.common.Pagination;
@@ -94,8 +96,9 @@ public class BoardController {
         }
 
         Board b = bService.selectBoard(bId, id); 
+        ArrayList<Reply> list = bService.selectReplyList(bId);
         if (b != null) {
-            model.addAttribute("b", b).addAttribute("page", page);
+            model.addAttribute("b", b).addAttribute("page", page).addAttribute("list",list);
             return "board/detail";
         } else {
             throw new BoardException("게시글 상세보기를 실패했습니다");
@@ -120,17 +123,44 @@ public class BoardController {
     	}
     }
     @PostMapping("delete")
-    public String deleteBoard(@RequestParam("boardId") int bId) {
+    public String deleteBoard(@RequestParam("boardId") int bId, HttpServletRequest request) {
     	int result = bService.deleteBoard(bId);
     	
     	if(result>0) {
-    		return "redirect:/board/list";
+    		return "redirect:/" +(request.getHeader("referer").contains("board") ? "board" : "attm") +"/list";
     	}else {
     		throw new BoardException("게시글 삭제를 실패했습니다");
     	}
     	
     }
     
+    @GetMapping("top")
+    @ResponseBody
+    public ArrayList<Board> selecTop() {
+    	ArrayList<Board> list = bService.selectTop();
+    	return list;
+    }
+    
+    @GetMapping("rinsert")
+    @ResponseBody
+    public ArrayList<Reply> insertReply(@ModelAttribute Reply r) {
+    	int result = bService.insertReply(r);
+    	ArrayList<Reply> list = bService.selectReplyList(r.getRefBoardId());
+    	return list;
+    }
+    
+    @GetMapping("rdelete")
+    @ResponseBody
+    public int deleteReply(@RequestParam("rId")int rId) {
+    	return bService.deleteReply(rId);
+    	
+    }
+    
+    @GetMapping("rupdate")
+    @ResponseBody
+    public int rUPdate(@ModelAttribute Reply r) {
+    	return bService.rupdate(r);
+    }
     
     
 }

@@ -78,4 +78,45 @@
 		</foreach>
 		select * from dual <!-- 형식을 맞추기 위하여 들어간것으로 큰 의미는 없음  -->
 	</insert>
-</mapper>	
+	
+<!-- 	<update id="statusNAttm">
+		update attachment
+		set attm_status='N'
+		where ref_board_id = #{bId}
+	</update>
+	 -->
+	
+	<select id="selectTop" resultType="kh.springboot.board.model.vo.Board">
+		select *
+		from (select * 
+			from board 
+				join member on(id=board_writer)
+			where board_status='Y'
+			order by board_count desc)
+		where rownum <![CDATA[<]]>=5
+	</select>
+	
+	<select id="selectReplyList" resultType="Reply">
+		select *
+		from reply
+			join member on(reply_writer=id)
+		where ref_board_id=#{bId} and reply_status='Y'
+		order by reply_id desc
+	</select>
+	
+	<insert id="insertReply">
+		insert into reply
+		values (seq_rid.nextval, #{replyContent}, #{refBoardId}, #{replyWriter}, sysdate, sysdate, default)
+	</insert>
+	
+	<delete id="deleteReply">
+		delete 
+		from reply
+		where reply_id = #{rId}
+	</delete>
+	
+	<update id="rupdate">
+		update reply
+		set reply_content=#{replyContent} where reply_id=#{replyId}
+	</update>
+	</mapper>	
