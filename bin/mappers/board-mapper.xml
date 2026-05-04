@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kh.springboot.board.model.mapper.BoardMapper">
+
+	<select id="getListCount" resultType="_int">	
+	select count(*) 
+	from board
+	where board_type = #{i} and board_status='Y'
+	</select>
+	
+	<select id = "selectBoardList">
+	select *
+	from board
+		join member on(board_writer = id)
+	where board_type = #{i} and board_status = 'Y'
+	order by board_id desc
+	</select>
+	
+	<resultMap type="Board" id="boardResultSet">
+		<result column="board_create_date" property="createDate"/>
+		<result column="board_modify_date" property = "modifyDate"/>
+		<result column="board_status" property="status"/>
+	</resultMap>
+	
+	<insert id="insertBoard">
+	<selectKey order="BEFORE" resultType="_int" keyProperty="boardId">
+		select seq_bid.nextval from dual
+	</selectKey>
+    insert into board
+    values(#{boardId}, #{boardTitle}, #{boardWriter}, #{boardContent}, default, sysdate, sysdate, default, #{boardType})
+	</insert>
+	
+	<select id="selectBoard" resultMap="boardResultSet">
+	select *
+	from board
+		join member on (board_writer = id)
+	where board_status = 'Y' and board_id = #{id}
+	</select>
+	
+	<update id = "updateCount">
+		update board
+		set board_count = board_count + 1
+		where board_id = #{bId}
+	</update>
+	
+	<update id = "updateBoard">
+		update board
+		set board_title = #{boardTitle}, board_content =#{boardContent}, board_modify_date=sysdate 
+		where board_id = #{boardId}
+	</update>
+	
+	<update id = "deleteBoard">
+		update board
+		set board_status = 'N'
+		where board_id = #{bId}
+	</update>
+	
+	<select id="selectAttmBoardList" resultType="Attachment">
+		select *
+		from attachment
+		where attm_status = 'Y' and 
+		<if test="bId == null">
+		attm_level = '0'
+		</if>
+		<if test="bId != null">
+			ref_board_id = #{bId}
+		</if>
+		order by attm_id
+	</select>
+	
+	<insert id="insertAttm">
+		insert all
+		<foreach collection="list" item="item" separator=" "> <!-- 하나의 attachment를 item으로 부를거야 separator를 통해서 어떤거를 기준으로 구분을 해줄지 결정-->
+			<!-- into attachment
+			values(seq_aid.nextval, seq_bid.currval, #{item.originalName}, #{item.renameName}, #{item.attmPath}, #{item.attmLevel}, default) -->
+			into attachment
+			values(new_aid , #{item.refBoardId}, #{item.originalName}, #{item.renameName}, #{item.attmPath}, #{item.attmLevel}, default)
+		</foreach>
+		select * from dual <!-- 형식을 맞추기 위하여 들어간것으로 큰 의미는 없음  -->
+	</insert>
+	
+<!-- 	<update id="statusNAttm">
+		update attachment
+		set attm_status='N'
+		where ref_board_id = #{bId}
+	</update>
+	 -->
+	
+	<select id="selectTop" resultType="kh.springboot.board.model.vo.Board">
+		select *
+		from (select * 
+			from board 
+				join member on(id=board_writer)
+			where board_status='Y'
+			order by board_count desc)
+		where rownum <![CDATA[<]]>=5
+	</select>
+	
+	<select id="selectReplyList" resultType="Reply">
+		select *
+		from reply
+			join member on(reply_writer=id)
+		where ref_board_id=#{bId} and reply_status='Y'
+		order by reply_id desc
+	</select>
+	
+	<insert id="insertReply">
+		insert into reply
+		values (seq_rid.nextval, #{replyContent}, #{refBoardId}, #{replyWriter}, sysdate, sysdate, default)
+	</insert>
+	
+	<delete id="deleteReply">
+		delete 
+		from reply
+		where reply_id = #{rId}
+	</delete>
+	
+	<update id="rupdate">
+		update reply
+		set reply_content=#{replyContent} where reply_id=#{replyId}
+	</update>
+	</mapper>	

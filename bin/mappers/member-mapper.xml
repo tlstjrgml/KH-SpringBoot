@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kh.springboot.member.model.mapper.MemberMapper">
+	<select id="login" resultType="Member">
+		select * from member 
+		where id = #{id} <!-- and pwd = #{pwd} --> and member_status = 'Y'
+	</select>
+	
+	<!-- ParameterType은 생략이 가능함 -->
+	<insert id="insertMember" >
+		insert into member 
+		values (#{id}, #{pwd}, #{name}, #{nickName}, #{email}, #{gender}, #{age}, #{phone}, #{address},
+		sysdate, sysdate, default, default)	
+	</insert>
+	
+	<select id="selectMyList" resultType = "map">
+	<![CDATA[
+	select *
+	from (select board_id bid_btype, board_title , board_create_date cd, to_char(board_count) bc_rc 
+		from board
+		where board_writer = #{id} and board_status = 'Y'
+		order by board_id desc)
+		where rownum <= 5
+
+		union
+		
+		select * from
+		(select board_type-3, board_title, reply_create_date, reply_content 
+		from reply
+    	join board on (board_id=ref_board_id)
+		where reply_writer = #{id} and reply_status='Y'
+		order by reply_create_date desc)
+		where rownum <= 5
+		order by 1 desc
+		]]>
+	</select>
+	
+	<update id = "updateMember">
+		update member 
+		set name=#{name}, nickname=#{nickname}, email=#{email}, gender=#{gender}, 
+			age=#{age}, phone=#{phone}, address=#{address}, update_date=sysdate
+		where id =#{id}
+	</update>
+	
+	<update id = "updatePassword">
+		update member
+		set pwd=#{pwd}
+		where id = #{id}
+	</update>
+	
+	<update id = "deleteMember">
+		update member
+		set member_status='N'
+		where id = #{id}
+	</update>
+	
+<!-- 	<select id="checkId" resultType="_int">
+		select count(*)from member where id=#{id}
+	</select>
+	
+	<select id="checkNickName" resultType="_int">
+		select count(*) from member where nickName = #{nickName}
+	</select> -->
+	
+	<select id="checkValue" resultType="_int">
+		select count(*) from member where ${col} = #{val}
+	</select>
+</mapper>

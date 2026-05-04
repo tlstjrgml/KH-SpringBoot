@@ -34,6 +34,7 @@ public class MemberController {
 	
 	private final MemberService mService;
 	private final BCryptPasswordEncoder bcrypt;
+	private final JavaMailSender mailSender;
 	
 	@GetMapping("/signIn")
 	public String signIn() {
@@ -258,6 +259,35 @@ public class MemberController {
 		map.put("val", val);
 		int count = mService.checkValue(map);
 		return count;
+	}
+	
+	@GetMapping("echeck")
+	@ResponseBody
+	public String checkEmail(@RequestParam("email")String email) {
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
+		
+		String subject = "[SpringBoot] 이메일 확";
+		String body = "<h1 align='center'>SpringBoot 이메일 확인</h1><br/>";
+		body += "<div style='border: 3px solid skyblue; text-align:center; font-size: 15px;'>본 메일은 이메일을 확인하기 위하여 발송되었습니다.<br/>"
+		body += "아래 숫자를 인증번호 확인한에 작성하여 확인해주시기 바랍니"<br/><br/>"";
+		
+		String random = ""; //view로 넘어가야지 일치하는지 확인이 가능함
+		for(int i = 0; i < 5; i++) {
+			random += (int)(Math.random() * 10);
+		}
+		
+		
+		
+		body += "<span style='font-size: 30px; text-decoration: underline;'><b>" +_ "</b></span><br/></div>";
+		
+		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+		mimeMessageHelper.setTo(email);
+		mimeMessageHelper.setSubject(subject);
+		mimeMessageHelper.setText(body, true); //trycatch 할것
+		
+		mailSender.send(mimeMessage); //실제로 이메일 전송
+		
+		return random;
 	}
 	
 	
