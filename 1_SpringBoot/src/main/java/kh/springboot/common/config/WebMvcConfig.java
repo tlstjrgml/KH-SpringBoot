@@ -11,6 +11,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		//mapping uri 설정
 		registry.addResourceHandler("/**")
-				.addResourceLocations("file:///c:/uploadFiles/","classpath:/static/");
+				.addResourceLocations("file:///c:/uploadFiles/","classpath:/static/", "classpath:/static/", "file:///c:/profiles/");
 	}
 }

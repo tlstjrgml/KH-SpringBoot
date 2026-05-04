@@ -1,9 +1,14 @@
 package kh.springboot.member.model.controller;
 
-import java.io.PrintWriter;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,27 +20,28 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpSession;
 import kh.springboot.member.model.exception.MemberException;
 import kh.springboot.member.model.service.MemberService;
 import kh.springboot.member.model.vo.Member;
+import kh.springboot.member.model.vo.TodoList;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequiredArgsConstructor //생성자 주입 방법
+@RequiredArgsConstructor
 @SessionAttributes("loginUser")
 @RequestMapping("/member")
 public class MemberController {
-	
-	//DI 필드 주입
-	//@Autowired 
-	
+
 	private final MemberService mService;
 	private final BCryptPasswordEncoder bcrypt;
 	private final JavaMailSender mailSender;
-	
+
 	@GetMapping("/signIn")
 	public String signIn() {
 		System.out.println(bcrypt.encode("1234"));
@@ -43,254 +49,189 @@ public class MemberController {
 		System.out.println(bcrypt.encode("pass02"));
 		return "logIn";
 	}
-	/***** 파라미터 받아오기 
-	 * @return *****/
-	//1. HttpServletRequest 사용(servelt방식)
-//	@PostMapping("member/signIn")
-//	public void login(HttpServletRequest request) {
-//		String id = request.getParameter("id");
-//		String pwd = request.getParameter("pwd");
-//		System.out.println(id);
-//		System.out.println(pwd);
-//		//System.out.println("123");
-//	}
-	
-//	//2.@RequestParam 사용
-//	@PostMapping("member/signIn")
-//	public void login(@RequestParam(value = "id", defaultValue = "hello") String id,
-//					  @RequestParam(value = "pwd", defaultValue = "world") String pwd,
-//					  @RequestParam(value = "test", required=false) String test) {
-//		System.out.println(id);
-//		System.out.println(pwd);
-//		System.out.println(test);
-//		
-//	}
-	
-	//3.@RequestParam 생략 - 권장 x
-//	@PostMapping("/member/signIn")
-//	public void login(String id, String pwd) {
-//		System.out.println(id);
-//		System.out.println(pwd);
-//	}
-	
-//	//4.@ModelAttribute사용(기본생성자를 만들고 setter메소드를 보고->커맨드 방식) -> 커맨드방식을 이용한 @ModelAttribute
-//	@PostMapping("member/signIn")
-//	public void login(@ModelAttribute Member m) {
-//		System.out.println(mService); //주소값
-//		mService.login(m);
-//	}
 
-	//5.@ModelAttribute 생략
-//	@PostMapping("member/signIn")
-//	public String login(Member m, HttpSession session) {
-////		System.out.println(m);
-//		Member loginUser = mService.login(m);
-//		System.out.println(loginUser);
-//		if(loginUser != null && bcrypt.matches(m.getPwd(), loginUser.getPwd())) {
-//			session.setAttribute("loginUser", loginUser);
-////			return "views/home"; //forward방식(url이 유지되었음)
-//			return "redirect:/home";
-//		}else {
-//			throw new MemberException("로그인을 실패했습니다."); //사용자정의 예외 발생
-//		}
-//	}
-	
-	
-//	@GetMapping("/member/logout")
-//	public String logout(HttpSession session) {
-//		session.invalidate();
-//		return "redirect:/home";
-//	}
-	
 	@GetMapping("/enroll")
 	public String enroll() {
-		
 		return "enroll";
 	}
-	
-//	@PostMapping("/member/enroll")
-//	public void enroll(@RequestParam("id")String id,
-//					   @RequestParam("pwd")String pwd,
-//					   @RequestParam("name")String name,
-//					   @RequestParam("nickName")String nickName) -> 너무 복잡
-	
+
 	@PostMapping("/enroll")
-	public String enroll(@ModelAttribute Member m, @RequestParam("emailId")String emailId, @RequestParam("emailDomain")String emailDomain) {
-		String email = null;
-		if(!emailId.trim().equals("")) {
+	public String enroll(@ModelAttribute Member m, @RequestParam("emailId") String emailId,
+			@RequestParam("emailDomain") String emailDomain) {
+		if (!emailId.trim().equals("")) {
 			m.setEmail(emailId + "@" + emailDomain);
-		}		
-		
-		//bcypt 암호화 - spring security에서 제공하는 암호화
+		}
 		m.setPwd(bcrypt.encode(m.getPwd()));
-		
 		int result = mService.insertMember(m);
-		if(result > 0) {
-			return"redirect:/home";
-		}else {
+		if (result > 0) {
+			return "redirect:/home";
+		} else {
 			throw new MemberException("회원가입을 실패하였습니다");
 		}
-		
 	}
-	
-	/*** view에 전달하고자 하는 데이터가 있을 때에 대한 방법 ***/
-	//1.model(데이터) 사용
-	//  model은 map형식으로 데이터를 담음(key:value형식), requestScope로 전달하게됨
-//	@GetMapping("/member/myInfo")
-//	public String myInfo(HttpSession session, Model model) {
-//		Member loginUser = (Member)session.getAttribute("loginUser");
-//		if(loginUser != null) {
-//			String id = loginUser.getId();
-//			ArrayList<HashMap<String, Object>> list = mService.selectMyList(id);
-//			model.addAttribute("list", list);
-//		}
-//		return"views/member/myInfo"; //forward방식
-//	}
-	
-	//2.ModelAndView를 이용하여 전달하기
+
 	@GetMapping("/myInfo")
 	public ModelAndView myInfo(HttpSession session, ModelAndView mv) {
-		Member loginUser = (Member)session.getAttribute("loginUser");
-		if(loginUser != null) {
+		Member loginUser = (Member) session.getAttribute("loginUser");
+		if (loginUser != null) {
 			String id = loginUser.getId();
 			ArrayList<HashMap<String, Object>> list = mService.selectMyList(id);
+			
+			ArrayList<TodoList> todoList = mService.selectTodoList(id);
+			mv.addObject("todoList", todoList);
 			
 			mv.addObject("list", list);
 			mv.setViewName("myInfo");
 		}
-		return mv; //forward방식
-	}	
-	
-	
-	//3.@SessionAttributes
-	//Model에 attribute가 추가될 때 자동으로 키 값을 찾아 세션에 등록하는 기능 제공
+		return mv;
+	}
+
 	@PostMapping("/signIn")
 	public String login(Member m, Model model) {
-//		System.out.println(m);
 		Member loginUser = mService.login(m);
 		System.out.println(loginUser);
-		if(loginUser != null && bcrypt.matches(m.getPwd(), loginUser.getPwd())) {
+		if (loginUser != null && bcrypt.matches(m.getPwd(), loginUser.getPwd())) {
 			model.addAttribute("loginUser", loginUser);
-//			return "views/home"; //forward방식(url이 유지되었음)
 			return "redirect:/home";
-		}else {
-			throw new MemberException("로그인을 실패했습니다."); //사용자정의 예외 발생
+		} else {
+			throw new MemberException("로그인을 실패했습니다.");
 		}
 	}
-	
+
 	@GetMapping("/logout")
 	public String logout(SessionStatus status) {
 		status.setComplete();
 		return "redirect:/home";
 	}
-	
+
 	@GetMapping("/edit")
 	public String edit() {
 		return "/edit";
 	}
-	
+
 	@PostMapping("/edit")
 	public String edit(@ModelAttribute Member m, Model model,
-					   @RequestParam("emailId")String emailId, 
-					   @RequestParam("emailDomain")String emailDomain) {
-		if(!emailId.trim().equals("")) {
+			@RequestParam("emailId") String emailId,
+			@RequestParam("emailDomain") String emailDomain) {
+		if (!emailId.trim().equals("")) {
 			m.setEmail(emailId + "@" + emailDomain);
 		}
-		
 		int result = mService.updateMember(m);
-		if(result >0) {
+		if (result > 0) {
 			model.addAttribute("loginUser", mService.login(m));
 			return "redirect:/member/myInfo";
-		}else {
+		} else {
 			throw new MemberException("회원 정보 수정을 실패했습니다");
 		}
 	}
+
 	@PostMapping("updatePassword")
-	public String updatePassword(@RequestParam("currentPwd")String pwd, @RequestParam("newPwd")String newPwd,
-			/*HttpSession session*/ Model model) {
-		//pwd랑 newPwd가 일치하는지 검사하기, 로그인한 비밀번호는 session에 있음
-		//session과 model을 모두 사용가능
-		/* Member m = (Member)session.getAttribute("loginUser"); */
-		Member m = (Member)model.getAttribute("loginUser");
-		
-		if(bcrypt.matches(pwd, m.getPwd())) {
+	public String updatePassword(@RequestParam("currentPwd") String pwd,
+			@RequestParam("newPwd") String newPwd, Model model) {
+		Member m = (Member) model.getAttribute("loginUser");
+		if (bcrypt.matches(pwd, m.getPwd())) {
 			m.setPwd(bcrypt.encode(newPwd));
 			int result = mService.updatePassword(m);
-			if(result>0) {
-				model.addAttribute("loginUser",m);
+			if (result > 0) {
+				model.addAttribute("loginUser", m);
 				return "redirect:/home";
-			}else {
+			} else {
 				throw new MemberException("비밀번호 수정을 실패했습니다.");
 			}
-		}throw new MemberException("비밀번호 수정을 실패했습니다");
+		}
+		throw new MemberException("비밀번호 수정을 실패했습니다");
 	}
+
 	@GetMapping("delete")
 	public String deleteMember(Model model) {
-		int result = mService.deleteMember(((Member)model.getAttribute("loginUser")).getId());
-		if(result>0) {
-			return"redirect:/member/logout";
-		}else {
+		int result = mService.deleteMember(((Member) model.getAttribute("loginUser")).getId());
+		if (result > 0) {
+			return "redirect:/member/logout";
+		} else {
 			throw new MemberException("회원탈퇴를 실패했습니다");
 		}
 	}
-	
-//	@GetMapping("checkId")
-//	public void checkId(@RequestParam("id")String id, PrintWriter out) {
-//		int count = mService.checkId(id);
-//		out.print(count);
-//	}
-//	
-//	@GetMapping("checkNickName")
-//	@ResponseBody
-//	public String checkNickName(@RequestParam("nickName")String nickName) {
-//		//int count = mService.checkNickName(nickName);
-//		//out.print(count);
-//		//out.print(mService.checkNickName(nickName));
-//		int count = mService.checkNickName(nickName);
-//		return count == 0 ? "usable" : "unusable";
-//		
-//	}
-	
+
 	@GetMapping("checkValue")
 	@ResponseBody
-	public int checkValue(@RequestParam("column")String col, @RequestParam("value") String val) {
+	public int checkValue(@RequestParam("column") String col, @RequestParam("value") String val) {
 		HashMap<String, String> map = new HashMap<String, String>();
 		map.put("col", col);
 		map.put("val", val);
 		int count = mService.checkValue(map);
 		return count;
 	}
-	
+
 	@GetMapping("echeck")
 	@ResponseBody
-	public String checkEmail(@RequestParam("email")String email) {
+	public String checkEmail(@RequestParam("email") String email) throws MessagingException {
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
-		
-		String subject = "[SpringBoot] 이메일 확";
+
+		String subject = "[SpringBoot] 이메일 확인";
 		String body = "<h1 align='center'>SpringBoot 이메일 확인</h1><br/>";
-		body += "<div style='border: 3px solid skyblue; text-align:center; font-size: 15px;'>본 메일은 이메일을 확인하기 위하여 발송되었습니다.<br/>"
-		body += "아래 숫자를 인증번호 확인한에 작성하여 확인해주시기 바랍니"<br/><br/>"";
-		
-		String random = ""; //view로 넘어가야지 일치하는지 확인이 가능함
-		for(int i = 0; i < 5; i++) {
-			random += (int)(Math.random() * 10);
+		body += "<div style='border: 3px solid skyblue; text-align:center; font-size: 15px;'>본 메일은 이메일을 확인하기 위하여 발송되었습니다.<br/>";
+		body += "아래 숫자를 인증번호 확인란에 작성하여 확인해주시기 바랍니다.<br/><br/>";
+
+		String random = "";
+		for (int i = 0; i < 5; i++) {
+			random += (int) (Math.random() * 10);
 		}
-		
-		
-		
-		body += "<span style='font-size: 30px; text-decoration: underline;'><b>" +_ "</b></span><br/></div>";
-		
+
+		body += "<span style='font-size: 30px; text-decoration: underline;'><b>" + random + "</b></span><br/></div>";
+
 		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
 		mimeMessageHelper.setTo(email);
 		mimeMessageHelper.setSubject(subject);
-		mimeMessageHelper.setText(body, true); //trycatch 할것
-		
-		mailSender.send(mimeMessage); //실제로 이메일 전송
-		
+		mimeMessageHelper.setText(body, true);
+
+		mailSender.send(mimeMessage);
+
 		return random;
 	}
 	
+	@PostMapping("profile")
+	@ResponseBody
+	public int updateProfile(@RequestParam(value = "profile", required=false) MultipartFile profile, Model model) {
+		Member m = (Member)model.getAttribute("loginUser");
+		
+		String savePath = "c:\\profiles";
+		File folder = new File(savePath);
+		if(!folder.exists()) {
+			folder.mkdirs();
+		}
+		
+		//기존 프로필에서 다른 프로필로 변경하는 경우에는 이전 프로필을 삭제
+		if(m.getProfile() != null) {
+			File f = new File(savePath + "\\" + m.getProfile());
+			f.delete();
+		}
+		String renameFileName = null;
+		if(profile != null) {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+			int ranNum = (int)(Math.random() * 100000);
+			String originFileName = profile.getOriginalFilename();
+			renameFileName = sdf.format(new Date()) + ranNum + originFileName.substring(originFileName.lastIndexOf("."));
+			try {
+				profile.transferTo(new File(folder + "\\" + renameFileName));
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		m.setProfile(renameFileName);
+		int result = mService.updateProfile(m);
+		if(result > 0) {
+			model.addAttribute("loginUser", m);
+		}
+		return result;
+	}
 	
-	
-	
+	@GetMapping("linsert")
+	@ResponseBody
+	public int linsert(@ModelAttribute TodoList todoList) {
+		return mService.linsert(todoList);
+	}
 }
